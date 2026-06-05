@@ -3,20 +3,40 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Bankit fintech API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User management
+  - name: transactions
+    description: Transaction operations
+  - name: transfers
+    description: Transfer operations
+  - name: reports
+    description: Reporting operations
+  - name: tax
+    description: Tax dashboard
+  - name: audit
+    description: Audit logs
+  - name: accounts
+    description: Bank account management
+  - name: beneficiaries
+    description: Beneficiary management
+  - name: verify
+    description: Payment verification
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +44,1333 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Auth ──────────────────────────────────────────────────
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout current session
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenInput"
+      responses:
+        "200":
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /auth/change-password:
+    post:
+      operationId: changePassword
+      tags: [auth]
+      summary: Change user password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # ── Users ──────────────────────────────────────────────────
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a new user (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update a user (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      summary: Delete a user (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /users/{id}/role:
+    patch:
+      operationId: updateUserRole
+      tags: [users]
+      summary: Update user role (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRoleUpdate"
+      responses:
+        "200":
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/stats:
+    get:
+      operationId: getUserStats
+      tags: [users]
+      summary: Get user statistics (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStats"
+
+  # ── Transactions ───────────────────────────────────────────
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [transactions]
+      summary: List transactions (filtered by role)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [verified, pending, failed]
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transactions list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+  /transactions/{id}:
+    get:
+      operationId: getTransaction
+      tags: [transactions]
+      summary: Get transaction details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transaction details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /transactions/{id}/receipt:
+    get:
+      operationId: getTransactionReceipt
+      tags: [transactions]
+      summary: Generate/get receipt for a transaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Receipt data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Receipt"
+
+  /transactions/verify:
+    post:
+      operationId: verifyPayment
+      tags: [transactions]
+      summary: Verify a payment (sales rep / account officer)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentVerifyInput"
+      responses:
+        "200":
+          description: Verification result (role-masked)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerificationResult"
+
+  /transactions/recent:
+    get:
+      operationId: getRecentTransactions
+      tags: [transactions]
+      summary: Get recent transactions (last 10, role-filtered)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Recent transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /transactions/summary:
+    get:
+      operationId: getTransactionSummary
+      tags: [transactions]
+      summary: Get transaction summary stats (role-gated)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionSummary"
+
+  # ── Public verification endpoint ───────────────────────────
+  /verify/{cplid}:
+    get:
+      operationId: publicVerifyCplid
+      tags: [verify]
+      summary: Public payment verification by CPLID
+      parameters:
+        - name: cplid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicVerifyResult"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Transfers ──────────────────────────────────────────────
+  /transfers:
+    get:
+      operationId: listTransfers
+      tags: [transfers]
+      summary: List transfers (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transfer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transfer"
+    post:
+      operationId: initiateTransfer
+      tags: [transfers]
+      summary: Initiate a transfer (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferInput"
+      responses:
+        "201":
+          description: Transfer initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  /transfers/{id}:
+    get:
+      operationId: getTransfer
+      tags: [transfers]
+      summary: Get transfer details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transfer details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  /transfers/{id}/approve:
+    post:
+      operationId: approveTransfer
+      tags: [transfers]
+      summary: Approve a pending transfer (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transfer approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  /transfers/{id}/reject:
+    post:
+      operationId: rejectTransfer
+      tags: [transfers]
+      summary: Reject a pending transfer (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transfer rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  # ── Bank Accounts ──────────────────────────────────────────
+  /accounts:
+    get:
+      operationId: listBankAccounts
+      tags: [accounts]
+      summary: List connected bank accounts (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Bank accounts list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BankAccount"
+    post:
+      operationId: createBankAccount
+      tags: [accounts]
+      summary: Connect a new bank account (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankAccountInput"
+      responses:
+        "201":
+          description: Bank account connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankAccount"
+
+  /accounts/{id}:
+    patch:
+      operationId: updateBankAccount
+      tags: [accounts]
+      summary: Update bank account (label, enable/disable)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankAccountUpdate"
+      responses:
+        "200":
+          description: Updated account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankAccount"
+    delete:
+      operationId: deleteBankAccount
+      tags: [accounts]
+      summary: Disconnect a bank account (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Disconnected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # ── Beneficiaries ──────────────────────────────────────────
+  /beneficiaries:
+    get:
+      operationId: listBeneficiaries
+      tags: [beneficiaries]
+      summary: List beneficiaries (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Beneficiaries list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Beneficiary"
+    post:
+      operationId: createBeneficiary
+      tags: [beneficiaries]
+      summary: Add a beneficiary (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BeneficiaryInput"
+      responses:
+        "201":
+          description: Beneficiary added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Beneficiary"
+
+  /beneficiaries/{id}:
+    delete:
+      operationId: deleteBeneficiary
+      tags: [beneficiaries]
+      summary: Remove a beneficiary (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # ── Reports ────────────────────────────────────────────────
+  /reports/revenue:
+    get:
+      operationId: getRevenueReport
+      tags: [reports]
+      summary: Get revenue report (account officer + admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, annual]
+      responses:
+        "200":
+          description: Revenue report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueReport"
+
+  /reports/dashboard:
+    get:
+      operationId: getDashboardStats
+      tags: [reports]
+      summary: Get dashboard stats (role-gated fields)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /reports/export:
+    get:
+      operationId: exportReport
+      tags: [reports]
+      summary: Export report as JSON (account officer + admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [revenue, transactions, audit]
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, annual]
+      responses:
+        "200":
+          description: Report export data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportData"
+
+  # ── Tax ────────────────────────────────────────────────────
+  /tax/dashboard:
+    get:
+      operationId: getTaxDashboard
+      tags: [tax]
+      summary: Get tax dashboard (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Tax dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxDashboard"
+
+  # ── Audit ──────────────────────────────────────────────────
+  /audit/logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit]
+      summary: List audit logs (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogList"
+
+  /audit/summary:
+    get:
+      operationId: getAuditSummary
+      tags: [audit]
+      summary: Get audit activity summary (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Audit summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditSummary"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    # ── Auth ────────────────────────────────────────────
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+
+    RefreshTokenInput:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [accessToken, refreshToken, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+
+    # ── Users ───────────────────────────────────────────
+    User:
+      type: object
+      required: [id, email, name, role, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, account_officer, sales_rep]
+        isActive:
+          type: boolean
+        lastLogin:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    UserInput:
+      type: object
+      required: [email, name, role, password]
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, account_officer, sales_rep]
+        password:
+          type: string
+          minLength: 8
+
+    UserUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        isActive:
+          type: boolean
+
+    UserRoleUpdate:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [admin, account_officer, sales_rep]
+
+    UserStats:
+      type: object
+      required: [total, admins, accountOfficers, salesReps, active, inactive]
+      properties:
+        total:
+          type: integer
+        admins:
+          type: integer
+        accountOfficers:
+          type: integer
+        salesReps:
+          type: integer
+        active:
+          type: integer
+        inactive:
+          type: integer
+
+    # ── Transactions ─────────────────────────────────────
+    Transaction:
+      type: object
+      required: [id, cplid, amount, customerName, customerAccountNumber, bankName, date, status, referenceNumber]
+      properties:
+        id:
+          type: integer
+        cplid:
+          type: string
+          description: "BKT-XXXXXXXX unique identifier"
+        amount:
+          type: number
+        customerName:
+          type: string
+        customerAccountNumber:
+          type: string
+        bankName:
+          type: string
+        date:
+          type: string
+        status:
+          type: string
+          enum: [verified, pending, failed]
+        referenceNumber:
+          type: string
+        description:
+          type: ["string", "null"]
+        verifiedBy:
+          type: ["integer", "null"]
+        verifiedAt:
+          type: ["string", "null"]
+
+    TransactionList:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    TransactionSummary:
+      type: object
+      required: [verified, pending, failed, totalCount]
+      properties:
+        verified:
+          type: integer
+        pending:
+          type: integer
+        failed:
+          type: integer
+        totalCount:
+          type: integer
+        todayCount:
+          type: integer
+
+    PaymentVerifyInput:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          description: CPLID, invoice number, reference number, or phone number
+
+    VerificationResult:
+      type: object
+      required: [found, status]
+      properties:
+        found:
+          type: boolean
+        status:
+          type: ["string", "null"]
+          enum: [verified, pending, failed, null]
+        customerName:
+          type: ["string", "null"]
+        amount:
+          type: ["number", "null"]
+        paymentDate:
+          type: ["string", "null"]
+        referenceNumber:
+          type: ["string", "null"]
+        cplid:
+          type: ["string", "null"]
+
+    PublicVerifyResult:
+      type: object
+      required: [status, customerName, amount, paymentDate, companyName]
+      properties:
+        status:
+          type: string
+          enum: [verified, pending, failed]
+        customerName:
+          type: string
+        amount:
+          type: number
+        paymentDate:
+          type: string
+        companyName:
+          type: string
+        cplid:
+          type: string
+
+    Receipt:
+      type: object
+      required: [id, transactionId, cplid, customerName, amount, status, issuedAt]
+      properties:
+        id:
+          type: integer
+        transactionId:
+          type: integer
+        cplid:
+          type: string
+        customerName:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+        referenceNumber:
+          type: string
+        issuedAt:
+          type: string
+        qrCodeData:
+          type: ["string", "null"]
+
+    # ── Transfers ────────────────────────────────────────
+    Transfer:
+      type: object
+      required: [id, amount, beneficiaryId, status, createdAt]
+      properties:
+        id:
+          type: integer
+        amount:
+          type: number
+        fromAccountId:
+          type: integer
+        beneficiaryId:
+          type: integer
+        beneficiaryName:
+          type: ["string", "null"]
+        narration:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, approved, rejected, failed]
+        initiatedBy:
+          type: integer
+        approvedBy:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: ["string", "null"]
+
+    TransferInput:
+      type: object
+      required: [amount, beneficiaryId, fromAccountId]
+      properties:
+        amount:
+          type: number
+        beneficiaryId:
+          type: integer
+        fromAccountId:
+          type: integer
+        narration:
+          type: string
+
+    # ── Bank Accounts ────────────────────────────────────
+    BankAccount:
+      type: object
+      required: [id, label, accountNumber, bankName, isActive]
+      properties:
+        id:
+          type: integer
+        label:
+          type: string
+        accountNumber:
+          type: string
+        bankName:
+          type: string
+        isActive:
+          type: boolean
+        balance:
+          type: ["number", "null"]
+        currency:
+          type: string
+
+    BankAccountInput:
+      type: object
+      required: [label, accountNumber, bankName]
+      properties:
+        label:
+          type: string
+        accountNumber:
+          type: string
+        bankName:
+          type: string
+        currency:
+          type: string
+
+    BankAccountUpdate:
+      type: object
+      properties:
+        label:
+          type: string
+        isActive:
+          type: boolean
+
+    # ── Beneficiaries ────────────────────────────────────
+    Beneficiary:
+      type: object
+      required: [id, name, accountNumber, bankName]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        accountNumber:
+          type: string
+        bankName:
+          type: string
+        email:
+          type: ["string", "null"]
+
+    BeneficiaryInput:
+      type: object
+      required: [name, accountNumber, bankName]
+      properties:
+        name:
+          type: string
+        accountNumber:
+          type: string
+        bankName:
+          type: string
+        email:
+          type: string
+
+    # ── Reports ──────────────────────────────────────────
+    RevenueReport:
+      type: object
+      required: [period, totalRevenue, periodBreakdown]
+      properties:
+        period:
+          type: string
+        totalRevenue:
+          type: number
+        transactionCount:
+          type: integer
+        periodBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenueDataPoint"
+
+    RevenueDataPoint:
+      type: object
+      required: [label, amount, count]
+      properties:
+        label:
+          type: string
+        amount:
+          type: number
+        count:
+          type: integer
+
+    DashboardStats:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+        recentVerifications:
+          type: integer
+        pendingVerifications:
+          type: integer
+        todayRevenue:
+          type: ["number", "null"]
+        weeklyRevenue:
+          type: ["number", "null"]
+        monthlyRevenue:
+          type: ["number", "null"]
+        grossRevenue:
+          type: ["number", "null"]
+        annualRevenue:
+          type: ["number", "null"]
+        totalUsers:
+          type: ["integer", "null"]
+        pendingTransfers:
+          type: ["integer", "null"]
+        totalTransactions:
+          type: integer
+        verifiedToday:
+          type: integer
+
+    ExportData:
+      type: object
+      required: [type, period, generatedAt, data]
+      properties:
+        type:
+          type: string
+        period:
+          type: string
+        generatedAt:
+          type: string
+        data:
+          type: array
+          items:
+            type: object
+
+    # ── Tax ──────────────────────────────────────────────
+    TaxDashboard:
+      type: object
+      required: [dailyEstimate, monthlyEstimate, annualEstimate, vatTotal, revenueProjection]
+      properties:
+        dailyEstimate:
+          type: number
+        monthlyEstimate:
+          type: number
+        annualEstimate:
+          type: number
+        vatTotal:
+          type: number
+        revenueProjection:
+          type: number
+        breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxBreakdown"
+
+    TaxBreakdown:
+      type: object
+      required: [label, amount, rate]
+      properties:
+        label:
+          type: string
+        amount:
+          type: number
+        rate:
+          type: number
+
+    # ── Audit ────────────────────────────────────────────
+    AuditLog:
+      type: object
+      required: [id, action, userId, userName, ipAddress, createdAt]
+      properties:
+        id:
+          type: integer
+        action:
+          type: string
+        userId:
+          type: integer
+        userName:
+          type: string
+        userRole:
+          type: ["string", "null"]
+        details:
+          type: ["string", "null"]
+        ipAddress:
+          type: string
+        createdAt:
+          type: string
+
+    AuditLogList:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AuditSummary:
+      type: object
+      required: [totalEvents, logins, verifications, transfers, userChanges]
+      properties:
+        totalEvents:
+          type: integer
+        logins:
+          type: integer
+        verifications:
+          type: integer
+        transfers:
+          type: integer
+        userChanges:
+          type: integer
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"

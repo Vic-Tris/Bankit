@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "rDkZAa4rojsRRn1ZSqaLf"
+uri = "file://bankitin.tar.gz"
+type = "unspecified"
+title = "bankitin"

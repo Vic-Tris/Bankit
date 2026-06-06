@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useLogin, useLogout, useRefreshToken, setAuthTokenGetter } from "@workspace/api-client-react";
-import type { User, LoginInput } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { User, LoginInput } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 

@@ -242,14 +242,14 @@ export default function Transfers() {
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center">Loading transfers...</TableCell>
                 </TableRow>
-              ) : transfersData?.data.length === 0 ? (
+              ) : transfersData?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
                     No transfers found.
                   </TableCell>
                 </TableRow>
               ) : (
-                transfersData?.data.map((transfer) => (
+                transfersData?.map((transfer) => (
                   <TableRow key={transfer.id}>
                     <TableCell className="text-sm text-muted-foreground">{formatDate(transfer.createdAt)}</TableCell>
                     <TableCell className="font-medium">{transfer.beneficiaryName}</TableCell>

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Search, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/format";
-import type { VerificationResult } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { VerificationResult } from "@workspace/api-client-react";
 
 export default function Verify() {
   const [query, setQuery] = useState("");

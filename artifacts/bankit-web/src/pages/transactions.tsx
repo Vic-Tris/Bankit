@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Search, Eye, Filter } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/format";
-import type { ListTransactionsStatus } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { ListTransactionsStatus } from "@workspace/api-client-react";
 
 export default function Transactions() {
   const [search, setSearch] = useState("");

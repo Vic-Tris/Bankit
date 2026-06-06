@@ -44,6 +44,7 @@ router.post("/accounts", requireAuth, requireRole("admin"), async (req, res): Pr
       accountNumber: parsed.data.accountNumber,
       bankName: parsed.data.bankName,
       currency: parsed.data.currency ?? "NGN",
+      balance: parsed.data.balance != null ? String(parsed.data.balance) : null,
     })
     .returning();
 
@@ -70,9 +71,14 @@ router.patch(
       return;
     }
 
+    const { balance, ...rest } = parsed.data;
     const [account] = await db
       .update(bankAccountsTable)
-      .set({ ...parsed.data, updatedAt: new Date() })
+      .set({
+        ...rest,
+        ...(balance != null ? { balance: String(balance) } : {}),
+        updatedAt: new Date(),
+      })
       .where(eq(bankAccountsTable.id, params.data.id))
       .returning();
 

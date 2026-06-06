@@ -262,11 +262,15 @@ export interface BankAccountInput {
   accountNumber: string;
   bankName: string;
   currency?: string;
+  /** Opening balance in the account's currency */
+  balance?: number;
 }
 
 export interface BankAccountUpdate {
   label?: string;
   isActive?: boolean;
+  /** Updated balance amount */
+  balance?: number;
 }
 
 export interface Beneficiary {

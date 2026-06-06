@@ -489,7 +489,8 @@ export const CreateBankAccountBody = zod.object({
   "label": zod.string(),
   "accountNumber": zod.string(),
   "bankName": zod.string(),
-  "currency": zod.string().optional()
+  "currency": zod.string().optional(),
+  "balance": zod.number().optional().describe('Opening balance in the account\'s currency')
 })
 
 
@@ -502,7 +503,8 @@ export const UpdateBankAccountParams = zod.object({
 
 export const UpdateBankAccountBody = zod.object({
   "label": zod.string().optional(),
-  "isActive": zod.boolean().optional()
+  "isActive": zod.boolean().optional(),
+  "balance": zod.number().optional().describe('Updated balance amount')
 })
 
 export const UpdateBankAccountResponse = zod.object({

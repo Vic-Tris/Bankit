@@ -1179,6 +1179,9 @@ components:
           type: string
         currency:
           type: string
+        balance:
+          type: number
+          description: Opening balance in the account's currency
 
     BankAccountUpdate:
       type: object
@@ -1187,6 +1190,9 @@ components:
           type: string
         isActive:
           type: boolean
+        balance:
+          type: number
+          description: Updated balance amount
 
     # ── Beneficiaries ────────────────────────────────────
     Beneficiary:

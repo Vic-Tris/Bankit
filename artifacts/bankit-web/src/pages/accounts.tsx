@@ -19,6 +19,7 @@ const accountSchema = z.object({
   accountNumber: z.string().min(10, "Valid account number is required"),
   bankName: z.string().min(2, "Bank name is required"),
   currency: z.string().default("NGN"),
+  balance: z.coerce.number().min(0, "Balance must be 0 or greater").optional(),
 });
 
 export default function Accounts() {
@@ -36,7 +37,7 @@ export default function Accounts() {
 
   const form = useForm<z.infer<typeof accountSchema>>({
     resolver: zodResolver(accountSchema),
-    defaultValues: { label: "", accountNumber: "", bankName: "", currency: "NGN" },
+    defaultValues: { label: "", accountNumber: "", bankName: "", currency: "NGN", balance: undefined },
   });
 
   const onSubmit = async (values: z.infer<typeof accountSchema>) => {
@@ -123,6 +124,28 @@ export default function Accounts() {
                     <FormItem>
                       <FormLabel>Account Number</FormLabel>
                       <FormControl><Input className="font-mono" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="balance"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Opening Balance (NGN) <span className="text-muted-foreground font-normal">— optional</span></FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="font-mono"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={e => field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

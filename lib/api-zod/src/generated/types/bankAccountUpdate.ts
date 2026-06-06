@@ -9,4 +9,6 @@
 export interface BankAccountUpdate {
   label?: string;
   isActive?: boolean;
+  /** Updated balance amount */
+  balance?: number;
 }

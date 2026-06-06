@@ -11,4 +11,6 @@ export interface BankAccountInput {
   accountNumber: string;
   bankName: string;
   currency?: string;
+  /** Opening balance in the account's currency */
+  balance?: number;
 }

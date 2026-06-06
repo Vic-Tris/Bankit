@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { useGetMe, useRefreshToken, useLogin, useLogout } from "@workspace/api-client-react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useLogin, useLogout, useRefreshToken, setAuthTokenGetter } from "@workspace/api-client-react";
 import type { User, LoginInput } from "@workspace/api-client-react/src/generated/api.schemas";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +11,10 @@ type AuthContextType = {
   logout: () => Promise<void>;
 };
 
+let _accessToken: string | null = null;
+
+setAuthTokenGetter(() => _accessToken);
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -18,19 +22,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-
-  const { data: meData, error: meError } = useGetMe({
-    query: {
-      retry: false,
-      enabled: !user && !!localStorage.getItem("refreshToken"),
-    },
-  });
+  const initialized = useRef(false);
 
   const refreshMutation = useRefreshToken();
   const loginMutation = useLogin();
   const logoutMutation = useLogout();
 
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
     const initAuth = async () => {
       const rt = localStorage.getItem("refreshToken");
       if (!rt) {
@@ -39,21 +40,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       try {
         const res = await refreshMutation.mutateAsync({ data: { refreshToken: rt } });
+        _accessToken = res.accessToken;
+        localStorage.setItem("refreshToken", res.refreshToken);
         setUser(res.user);
-      } catch (err) {
+      } catch {
         localStorage.removeItem("refreshToken");
+        _accessToken = null;
       } finally {
         setIsLoading(false);
       }
     };
-    if (!user) {
-      initAuth();
-    }
+
+    initAuth();
   }, []);
 
   const login = async (data: LoginInput) => {
     try {
       const res = await loginMutation.mutateAsync({ data });
+      _accessToken = res.accessToken;
       localStorage.setItem("refreshToken", res.refreshToken);
       setUser(res.user);
       setLocation("/dashboard");
@@ -70,7 +74,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await logoutMutation.mutateAsync();
+    } catch {
     } finally {
+      _accessToken = null;
       localStorage.removeItem("refreshToken");
       setUser(null);
       setLocation("/login");

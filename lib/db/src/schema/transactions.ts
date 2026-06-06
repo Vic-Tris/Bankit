@@ -2,6 +2,7 @@ import { pgTable, serial, text, numeric, timestamp, integer, pgEnum } from "driz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
+import { customersTable } from "./customers";
 
 export const transactionStatusEnum = pgEnum("transaction_status", ["verified", "pending", "failed"]);
 
@@ -20,6 +21,7 @@ export const transactionsTable = pgTable("transactions", {
   verifiedAt: timestamp("verified_at"),
   customerPhone: text("customer_phone"),
   invoiceNumber: text("invoice_number"),
+  customerId: integer("customer_id").references(() => customersTable.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

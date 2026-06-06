@@ -12,6 +12,7 @@ import {
   Calculator, 
   ShieldCheck, 
   Users, 
+  Building2,
   Landmark, 
   Settings, 
   LogOut 
@@ -32,6 +33,7 @@ const navItems: NavItem[] = [
   { href: "/transfers", label: "Transfers", icon: <ArrowRightLeft size={18} />, roles: ["admin"] },
   { href: "/tax", label: "Tax & VAT", icon: <Calculator size={18} />, roles: ["admin"] },
   { href: "/audit", label: "Audit Logs", icon: <ShieldCheck size={18} />, roles: ["admin"] },
+  { href: "/customers", label: "Customers", icon: <Building2 size={18} />, roles: ["admin", "account_officer", "sales_rep"] },
   { href: "/users", label: "Users", icon: <Users size={18} />, roles: ["admin"] },
   { href: "/accounts", label: "Bank Accounts", icon: <Landmark size={18} />, roles: ["admin"] },
   { href: "/settings", label: "Settings", icon: <Settings size={18} />, roles: ["admin", "account_officer", "sales_rep"] },

@@ -17,6 +17,77 @@ export interface MessageResponse {
   message: string;
 }
 
+export interface Customer {
+  id: number;
+  name: string;
+  /** @nullable */
+  rcNumber?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  contactPerson?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomerInput {
+  name: string;
+  rcNumber?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  contactPerson?: string;
+  notes?: string;
+}
+
+export type CustomerTransactionStatus = typeof CustomerTransactionStatus[keyof typeof CustomerTransactionStatus];
+
+
+export const CustomerTransactionStatus = {
+  verified: 'verified',
+  pending: 'pending',
+  failed: 'failed',
+} as const;
+
+export interface CustomerTransaction {
+  id: number;
+  cplid: string;
+  amount: number;
+  status: CustomerTransactionStatus;
+  date: string;
+  referenceNumber: string;
+}
+
+export interface LinkTransactionInput {
+  transactionId: number;
+}
+
+export interface CustomerDetail {
+  id: number;
+  name: string;
+  /** @nullable */
+  rcNumber?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  contactPerson?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  transactions: CustomerTransaction[];
+}
+
 export interface LoginInput {
   email: string;
   /** @minLength 6 */
@@ -398,6 +469,13 @@ export const ListTransactionsStatus = {
 export type ListTransfersParams = {
 page?: number;
 limit?: number;
+};
+
+export type ListCustomersParams = {
+/**
+ * Search by name, RC number, email, or phone
+ */
+search?: string;
 };
 
 export type GetRevenueReportParams = {

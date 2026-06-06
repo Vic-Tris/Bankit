@@ -531,6 +531,130 @@ export const DeleteBankAccountResponse = zod.object({
 
 
 /**
+ * @summary List all customers (all authenticated roles)
+ */
+export const ListCustomersQueryParams = zod.object({
+  "search": zod.coerce.string().optional().describe('Search by name, RC number, email, or phone')
+})
+
+export const ListCustomersResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "rcNumber": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "contactPerson": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListCustomersResponse = zod.array(ListCustomersResponseItem)
+
+
+/**
+ * @summary Create a new customer (admin + account_officer)
+ */
+export const CreateCustomerBody = zod.object({
+  "name": zod.string(),
+  "rcNumber": zod.string().optional(),
+  "email": zod.string().email().optional(),
+  "phone": zod.string().optional(),
+  "address": zod.string().optional(),
+  "contactPerson": zod.string().optional(),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Get customer by ID with linked transactions
+ */
+export const GetCustomerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetCustomerResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "rcNumber": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "contactPerson": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "transactions": zod.array(zod.object({
+  "id": zod.number(),
+  "cplid": zod.string(),
+  "amount": zod.number(),
+  "status": zod.enum(['verified', 'pending', 'failed']),
+  "date": zod.string(),
+  "referenceNumber": zod.string()
+}))
+})
+
+
+/**
+ * @summary Update customer (admin + account_officer)
+ */
+export const UpdateCustomerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCustomerBody = zod.object({
+  "name": zod.string(),
+  "rcNumber": zod.string().optional(),
+  "email": zod.string().email().optional(),
+  "phone": zod.string().optional(),
+  "address": zod.string().optional(),
+  "contactPerson": zod.string().optional(),
+  "notes": zod.string().optional()
+})
+
+export const UpdateCustomerResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "rcNumber": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "contactPerson": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete customer (admin only)
+ */
+export const DeleteCustomerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteCustomerResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Link a transaction to a customer
+ */
+export const LinkTransactionToCustomerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const LinkTransactionToCustomerBody = zod.object({
+  "transactionId": zod.number()
+})
+
+export const LinkTransactionToCustomerResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
  * @summary List beneficiaries (admin only)
  */
 export const ListBeneficiariesResponseItem = zod.object({

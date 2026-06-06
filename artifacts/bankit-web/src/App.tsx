@@ -16,6 +16,7 @@ import Reports from "@/pages/reports";
 import Tax from "@/pages/tax";
 import AuditLogs from "@/pages/audit";
 import Users from "@/pages/users";
+import Customers from "@/pages/customers";
 import Accounts from "@/pages/accounts";
 import Settings from "@/pages/settings";
 import PublicVerify from "@/pages/public-verify";
@@ -77,6 +78,9 @@ function Router() {
       </Route>
       <Route path="/audit">
         {() => <ProtectedRoute component={AuditLogs} roles={["admin"]} />}
+      </Route>
+      <Route path="/customers">
+        {() => <ProtectedRoute component={Customers} />}
       </Route>
       <Route path="/users">
         {() => <ProtectedRoute component={Users} roles={["admin"]} />}

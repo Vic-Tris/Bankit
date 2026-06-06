@@ -640,6 +640,141 @@ paths:
               schema:
                 $ref: "#/components/schemas/MessageResponse"
 
+  # ── Customers ──────────────────────────────────────────────
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List all customers (all authenticated roles)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by name, RC number, email, or phone
+      responses:
+        "200":
+          description: Customers list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a new customer (admin + account_officer)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get customer by ID with linked transactions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Customer details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerDetail"
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update customer (admin + account_officer)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "200":
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete customer (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /customers/{id}/link-transaction:
+    post:
+      operationId: linkTransactionToCustomer
+      tags: [customers]
+      summary: Link a transaction to a customer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkTransactionInput"
+      responses:
+        "200":
+          description: Transaction linked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
   # ── Beneficiaries ──────────────────────────────────────────
   /beneficiaries:
     get:
@@ -861,6 +996,106 @@ components:
       properties:
         message:
           type: string
+
+    # ── Customers ───────────────────────────────────────
+    Customer:
+      type: object
+      required: [id, name, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        rcNumber:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        contactPerson:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    CustomerInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        rcNumber:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        address:
+          type: string
+        contactPerson:
+          type: string
+        notes:
+          type: string
+
+    CustomerTransaction:
+      type: object
+      required: [id, cplid, amount, status, date, referenceNumber]
+      properties:
+        id:
+          type: integer
+        cplid:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [verified, pending, failed]
+        date:
+          type: string
+        referenceNumber:
+          type: string
+
+    LinkTransactionInput:
+      type: object
+      required: [transactionId]
+      properties:
+        transactionId:
+          type: integer
+
+    CustomerDetail:
+      type: object
+      required: [id, name, createdAt, updatedAt, transactions]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        rcNumber:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        contactPerson:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomerTransaction"
 
     # ── Auth ────────────────────────────────────────────
     LoginInput:

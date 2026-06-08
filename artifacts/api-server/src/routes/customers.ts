@@ -130,9 +130,20 @@ router.patch(
     }
 
     const { name, rcNumber, email, phone, address, contactPerson, notes } = req.body;
-    const updates: Record<string, string | null> = { updatedAt: new Date().toISOString() };
+    
+    // Fixed: Using partial explicit mapping derived from the table type itself
+    const updates: Partial<typeof customersTable.$inferInsert> = { 
+      updatedAt: new Date() 
+    };
 
-    if (name !== undefined) updates.name = name?.trim() || null;
+    if (name !== undefined) {
+      if (name === null || name.trim() === "") {
+        res.status(400).json({ error: "Company name cannot be blank" });
+        return;
+      }
+      updates.name = name.trim();
+    }
+    
     if (rcNumber !== undefined) updates.rcNumber = rcNumber?.trim() || null;
     if (email !== undefined) updates.email = email?.trim() || null;
     if (phone !== undefined) updates.phone = phone?.trim() || null;
@@ -142,7 +153,7 @@ router.patch(
 
     const [customer] = await db
       .update(customersTable)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(customersTable.id, id))
       .returning();
 

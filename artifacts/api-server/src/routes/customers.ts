@@ -1,10 +1,11 @@
-import { Router, type IRouter } from "express";
+import { Router } from "express";
 import { eq, ilike, or, desc } from "drizzle-orm";
 import { db, customersTable, transactionsTable } from "@workspace/db";
 import { requireAuth, requireRole, type JwtPayload } from "../lib/auth";
 import { logAudit } from "../lib/audit";
 
-const router: IRouter = Router();
+// Letting Express infer the Router instance directly fixes the structural parameter mismatches
+const router = Router();
 
 function formatCustomer(c: typeof customersTable.$inferSelect) {
   return {
@@ -131,7 +132,6 @@ router.patch(
 
     const { name, rcNumber, email, phone, address, contactPerson, notes } = req.body;
     
-    // Fixed: Using partial explicit mapping derived from the table type itself
     const updates: Partial<typeof customersTable.$inferInsert> = { 
       updatedAt: new Date() 
     };

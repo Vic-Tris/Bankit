@@ -4,8 +4,15 @@ import { db, customersTable, transactionsTable } from "@workspace/db";
 import { requireAuth, requireRole, type JwtPayload } from "../lib/auth";
 import { logAudit } from "../lib/audit";
 
-// Letting Express infer the Router instance directly fixes the structural parameter mismatches
 const router = Router();
+
+// Custom interface extending the standard Express Request for this file
+interface AuthenticatedRequest extends any {
+  user: JwtPayload;
+  params: { id?: string };
+  query: { search?: string };
+  body: any;
+}
 
 function formatCustomer(c: typeof customersTable.$inferSelect) {
   return {
@@ -23,7 +30,8 @@ function formatCustomer(c: typeof customersTable.$inferSelect) {
 }
 
 router.get("/customers", requireAuth, async (req, res): Promise<void> => {
-  const search = req.query.search as string | undefined;
+  const r = req as unknown as AuthenticatedRequest;
+  const search = r.query.search;
 
   let results;
   if (search) {
@@ -54,8 +62,9 @@ router.post(
   requireAuth,
   requireRole("admin", "account_officer"),
   async (req, res): Promise<void> => {
-    const jwtUser = (req as typeof req & { user: JwtPayload }).user;
-    const { name, rcNumber, email, phone, address, contactPerson, notes } = req.body;
+    const r = req as unknown as AuthenticatedRequest;
+    const jwtUser = r.user;
+    const { name, rcNumber, email, phone, address, contactPerson, notes } = r.body;
 
     if (!name || typeof name !== "string" || name.trim() === "") {
       res.status(400).json({ error: "Company name is required" });
@@ -82,7 +91,8 @@ router.post(
 );
 
 router.get("/customers/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const r = req as unknown as AuthenticatedRequest;
+  const id = parseInt(r.params.id || "");
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid customer ID" });
     return;
@@ -123,14 +133,15 @@ router.patch(
   requireAuth,
   requireRole("admin", "account_officer"),
   async (req, res): Promise<void> => {
-    const jwtUser = (req as typeof req & { user: JwtPayload }).user;
-    const id = parseInt(req.params.id);
+    const r = req as unknown as AuthenticatedRequest;
+    const jwtUser = r.user;
+    const id = parseInt(r.params.id || "");
     if (isNaN(id)) {
       res.status(400).json({ error: "Invalid customer ID" });
       return;
     }
 
-    const { name, rcNumber, email, phone, address, contactPerson, notes } = req.body;
+    const { name, rcNumber, email, phone, address, contactPerson, notes } = r.body;
     
     const updates: Partial<typeof customersTable.$inferInsert> = { 
       updatedAt: new Date() 
@@ -173,8 +184,9 @@ router.delete(
   requireAuth,
   requireRole("admin"),
   async (req, res): Promise<void> => {
-    const jwtUser = (req as typeof req & { user: JwtPayload }).user;
-    const id = parseInt(req.params.id);
+    const r = req as unknown as AuthenticatedRequest;
+    const jwtUser = r.user;
+    const id = parseInt(r.params.id || "");
     if (isNaN(id)) {
       res.status(400).json({ error: "Invalid customer ID" });
       return;
@@ -206,9 +218,10 @@ router.post(
   requireAuth,
   requireRole("admin", "account_officer"),
   async (req, res): Promise<void> => {
-    const jwtUser = (req as typeof req & { user: JwtPayload }).user;
-    const customerId = parseInt(req.params.id);
-    const { transactionId } = req.body;
+    const r = req as unknown as AuthenticatedRequest;
+    const jwtUser = r.user;
+    const customerId = parseInt(r.params.id || "");
+    const { transactionId } = r.body;
 
     if (isNaN(customerId) || !transactionId) {
       res.status(400).json({ error: "Valid customerId and transactionId required" });

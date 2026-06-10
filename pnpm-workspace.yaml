@@ -33,12 +33,10 @@ minimumReleaseAgeExclude:
   # this setting guards against does not apply to our own packages.
   - '@replit/*'
   - stripe-replit-sync
-
 packages:
-  - artifacts/*
-  - lib/*
-  - lib/integrations/*
-  - scripts
+  - 'artifacts/api-server'
+  - 'artifacts/bankit-web'
+  - 'artifacts/mockup-sandbox'
 
 catalog:
   '@replit/vite-plugin-cartographer': ^0.5.1
